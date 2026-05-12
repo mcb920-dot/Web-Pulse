@@ -19,15 +19,26 @@ export default async function handler(req, res) {
       return res.status(200).json({ error: data.status, message: data.error_message, places: [] })
     }
 
-    const places = (data.results || []).map(p => ({
-      displayName: { text: p.name },
-      formattedAddress: p.formatted_address,
-      rating: p.rating,
-      userRatingCount: p.user_ratings_total,
-      websiteUri: p.website || '',
-      nationalPhoneNumber: p.formatted_phone_number || '',
-      googleMapsUri: `https://www.google.com/maps/place/?q=place_id:${p.place_id}`,
-      businessStatus: p.business_status
+    const places = await Promise.all((data.results || []).map(async p => {
+      let website = ''
+      let phone = ''
+      try {
+        const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${p.place_id}&fields=website,formatted_phone_number&key=${process.env.GOOGLE_PLACES_API_KEY}`
+        const detailRes = await fetch(detailUrl)
+        const detailData = await detailRes.json()
+        website = detailData.result?.website || ''
+        phone = detailData.result?.formatted_phone_number || ''
+      } catch {}
+      return {
+        displayName: { text: p.name },
+        formattedAddress: p.formatted_address,
+        rating: p.rating,
+        userRatingCount: p.user_ratings_total,
+        websiteUri: website,
+        nationalPhoneNumber: phone,
+        googleMapsUri: `https://www.google.com/maps/place/?q=place_id:${p.place_id}`,
+        businessStatus: p.business_status
+      }
     }))
 
     return res.status(200).json({ places })
