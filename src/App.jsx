@@ -28,15 +28,7 @@ export default function App() {
     setStatusMsg('Scanning Google Places...')
 
     try {
-      const placesRes = await fetch('/api/places', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: `${trade} ${city} ${state}` })
-      })
-      const placesData = await placesRes.json()
-      const places = placesData.places || []
-
-      if (!places.length) { setStatusMsg('No results found.'); setLoading(false); return }
+     vercel --prod}
 
       setStatusMsg(`Found ${places.length} businesses — analyzing with AI...`)
 
